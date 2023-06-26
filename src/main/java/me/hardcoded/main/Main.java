@@ -9,9 +9,13 @@ import java.io.File;
 
 public class Main {
 	public static void main(String[] args) {
-		for (var list : FLStudioPython.readProjectPatterns(new File("C:\\Users\\Admin\\AppData\\Local\\Temp\\music-library-data\\BeatStep_2022_07_06.flp"))) {
+		// TODO: Init this earlier
+		// TODO: Add loading popup
+		PythonRunner.init();
+		
+		/*for (var list : FLStudioPython.readProjectPatterns(new File("C:\\Users\\Admin\\AppData\\Roaming\\music-library-data\\BeatStep_2022_07_06.flp"))) {
 			System.out.println(list);
-		}
+		}*/
 		
 		// Setup window class
 		Dimension size = new Dimension(640, 380);

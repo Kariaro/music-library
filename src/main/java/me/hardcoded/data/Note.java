@@ -1,11 +1,16 @@
 package me.hardcoded.data;
 
 public class Note {
-	public int note;      // 0 == C0, 12 == C1
-	public double start;  // In steps
-	public double end;    // In steps
+	public int note;   // 0 == C0, 12 == C1
+	public int start;  // In ticks
+	public int end;    // In ticks
 	
-	public Note(int note, double start, double end) {
+	// 1 bar
+	// 4 beat
+	// 16 step
+	// 384 ticks
+	
+	public Note(int note, int start, int end) {
 		this.note = note;
 		this.start = start;
 		this.end = end;
@@ -19,7 +24,7 @@ public class Note {
 	
 	@Override
 	public String toString() {
-		return "Note{name=" + getName() + ", start=" + start + ", end=" + end + "}";
+		return "Note{name=" + getName() + " (" + note + "), start=" + start + ", end=" + end + "}";
 	}
 	
 	/**
@@ -32,7 +37,7 @@ public class Note {
 		int digitIndex = -1;
 		for (int i = name.length() - 1; i >= 0; i--) {
 			if (!Character.isDigit(name.charAt(i))) {
-				digitIndex = i;
+				digitIndex = i + 1;
 				break;
 			}
 		}
@@ -51,7 +56,7 @@ public class Note {
 				}
 			}
 		} catch (NumberFormatException e) {
-			// Ignore
+			e.printStackTrace();
 		}
 		
 		return -1;

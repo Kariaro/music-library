@@ -14,8 +14,8 @@ public class PianoComponent extends JPanel {
 	protected final PianoRoll roll;
 	protected final PianoSound sound;
 	
-	protected double beatsPerMinute = 120;
-	protected int stepWidth = 28;
+	protected double beatsPerMinute = 140;
+	protected int stepWidth = 18;
 	
 	protected final Timer playTimer;
 	protected long playTimerStart;
@@ -32,7 +32,7 @@ public class PianoComponent extends JPanel {
 		add(rollTimeline, BorderLayout.NORTH);
 		// add(section, BorderLayout.LINE_START);
 		// add(roll, BorderLayout.CENTER);
-		setTimeBeat(100);
+		setTimeTick(24);
 		
 		// Scroll
 		JPanel rollAndSection = new JPanel();
@@ -61,7 +61,7 @@ public class PianoComponent extends JPanel {
 			public void actionPerformed(ActionEvent e) {
 				if (playTimer.isRunning()) {
 					playTimer.stop();
-					roll.setTimeBeat(-1);
+					roll.setTimeTick(-1);
 					repaint();
 				} else {
 					play();
@@ -94,8 +94,8 @@ public class PianoComponent extends JPanel {
 		return section.isNoteSelected(index);
 	}
 	
-	public void setTimeBeat(double beat) {
-		roll.setTimeBeat(beat);
+	public void setTimeTick(int tick) {
+		roll.setTimeTick(tick);
 	}
 	
 	public void setStepWidth(int width) {
@@ -119,14 +119,14 @@ public class PianoComponent extends JPanel {
 	 * Start playing the piano timeline
 	 */
 	public void play() {
-		play(rollTimeline.getTimeStart());
+		play(rollTimeline.getTimeTickStart());
 	}
 	
-	public void play(double offset) {
-		roll.setTimeBeat(offset);
+	public void play(int tickOffset) {
+		roll.setTimeTick(tickOffset);
 		
-		double beatsPerSecond = (beatsPerMinute) / 60.0;
-		long millisecondOffset = (long) ((offset / beatsPerSecond) * 1000L);
+		double ticksPerSecond = ((beatsPerMinute) / 60.0) * 4.0 * 24.0;
+		long millisecondOffset = (long) ((tickOffset / ticksPerSecond) * 1000L);
 		playTimerStart = System.currentTimeMillis() - millisecondOffset;
 		playTimer.restart();
 	}
@@ -145,20 +145,21 @@ public class PianoComponent extends JPanel {
 		// 240 bpm = 240 beats / min = 60 measures / min
 		// 1 messure
 		
-		double beatsPerSecond = (beatsPerMinute) / 60.0;
-		double beatIndex = ((currentTime - playTimerStart) / 1000.0) * beatsPerSecond;
+		double ticksPerSecond = ((beatsPerMinute) / 60.0) * 4.0 * 24.0;
+		int tickIndex = (int) (((currentTime - playTimerStart) / 1000.0) * ticksPerSecond);
 		
-		double previousBeat = roll.getTimeBeat();
-		roll.setTimeBeat(beatIndex);
+		int prevIndex = roll.getTimeTick();
+		roll.setTimeTick(tickIndex);
 		roll.repaint();
 		
-		if (beatIndex > 16) {
+		// 16 beats
+		if (tickIndex > 24 * 16 * 16) {
 			playTimer.stop();
 		}
 		
 		for (var note : roll.getNotes()) {
-			int noteMillis = (int) (beatsPerSecond / 4 * (note.end - note.start) * 1000);
-			if (note.start < beatIndex * 4 && note.start >= previousBeat * 4) {
+			int noteMillis = (int) (((note.end - note.start) / ticksPerSecond) * 1000);
+			if (note.start < tickIndex && note.start >= prevIndex) {
 				// Play
 				sound.playNote(note.note + 12, 80, noteMillis);
 			}

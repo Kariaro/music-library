@@ -15,6 +15,13 @@ public class PianoState {
 		notes.add(note);
 	}
 	
+	public void addNotes(List<Note> list) {
+		operations.addFirst(new Operation(Type.Add, new ArrayList<>(list)));
+		normalizeOperations();
+		
+		notes.addAll(list);
+	}
+	
 	public synchronized void removeNotes(Collection<Note> collections) {
 		operations.addFirst(new Operation(Type.Remove, new ArrayList<>(collections)));
 		normalizeOperations();

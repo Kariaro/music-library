@@ -38,7 +38,7 @@ public class PianoKeys extends JPanel {
 			@Override
 			public void mousePressed(MouseEvent e) {
 				int idx = getNoteIndex(e.getPoint(), 0);
-				parent.sound.playNote(idx + 12, 80, 500);
+				parent.sound.playNote(idx + (parent.getOctaveOffset() + 1) * 12, 80, 500);
 				
 				prevIdx = idx;
 			}

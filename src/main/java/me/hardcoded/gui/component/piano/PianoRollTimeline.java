@@ -13,8 +13,8 @@ import java.awt.event.MouseEvent;
 public class PianoRollTimeline extends JPanel {
 	private final PianoComponent parent;
 	private final PianoRoll roll;
-	private double timeBeat;
-	private double timeStart;
+	private double timeTick;
+	private int timeTickStart;
 	
 	public PianoRollTimeline(PianoComponent parent, PianoRoll roll) {
 		this.parent = parent;
@@ -34,12 +34,12 @@ public class PianoRollTimeline extends JPanel {
 			public void moveTime(Point p) {
 				int rollIndex = p.x - parent.section.getWidth();
 				
-				int beatWidth = parent.getStepWidth() * 4;
-				double beatOffset = (rollIndex + beatWidth / 8.0) / (double) beatWidth;
+				int barWidth = parent.getStepWidth() * 16;
+				int tickOffset = (int) (((rollIndex + barWidth / 8.0) / (double) barWidth) * 16 * 24);
 				
 				// Snap to steps
-				timeStart = Math.max(0, beatOffset);
-				timeStart = (int) (timeStart * 4) / 4.0;
+				timeTickStart = Math.max(0, tickOffset);
+				timeTickStart = ((timeTickStart) / 96) * 96;
 				repaint();
 			}
 		};
@@ -49,16 +49,16 @@ public class PianoRollTimeline extends JPanel {
 		setBackground(PianoColors.TimelineBackground);
 	}
 	
-	public double getTimeStart() {
-		return timeStart;
+	public int getTimeTickStart() {
+		return timeTickStart;
 	}
 	
-	public void setTimeBeat(double beat) {
-		timeBeat = beat;
+	public void setTimeTick(int tick) {
+		timeTick = tick;
 	}
 	
-	public double getTimeBeat() {
-		return timeBeat;
+	public double getTimeTick() {
+		return timeTick;
 	}
 	
 	@Override
@@ -74,19 +74,20 @@ public class PianoRollTimeline extends JPanel {
 		
 		// Draw digits
 		int width = getWidth();
-		int beatWidth = parent.getStepWidth() * 4;
+		int stepWidth = parent.getStepWidth();
+		int barWidth = stepWidth * 16;
 		
 		g.setColor(Color.lightGray);
 		int beatIndex = 1;
 		
-		Rectangle rect = new Rectangle(parent.section.getWidth(), 0, beatWidth, getHeight());
-		for (int i = 0; i < width; i += beatWidth) {
+		Rectangle rect = new Rectangle(parent.section.getWidth(), 0, barWidth, getHeight());
+		for (int i = 0; i < width; i += barWidth) {
 			DrawUtility.drawTextAligned(g, Integer.toString(beatIndex), rect, DrawUtility.ALIGN_CENTER_LEFT);
-			rect.x += beatWidth;
+			rect.x += barWidth;
 			beatIndex += 1;
 		}
 		
-		int bx = (int) (beatWidth * timeStart) + parent.section.getWidth();
+		int bx = (int) (stepWidth * timeTickStart / 24.0) + parent.section.getWidth();
 		int[][] polygon = {
 			{ bx - 7, bx - 7, bx, bx + 7, bx + 7},
 			{ 4, 10, 15, 10, 4 }

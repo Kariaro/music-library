@@ -12,6 +12,7 @@ public class PianoSound {
 	private final Synthesizer synth;
 	private final MidiChannel[] channels;
 	private final ScheduledExecutorService service;
+	private int[] notesTime = new int[256];
 	
 	public PianoSound() {
 		service = Executors.newSingleThreadScheduledExecutor();
@@ -26,8 +27,15 @@ public class PianoSound {
 	}
 	
 	public synchronized void playNote(int note, int volume, int millis) {
+		int nid = ((note % notesTime.length) + notesTime.length) % notesTime.length;
+		int id = ++notesTime[nid];
+		
 		service.schedule(() -> channels[0].noteOn(note, volume), 0, TimeUnit.MILLISECONDS);
-		service.schedule(() -> channels[0].noteOff(note), millis, TimeUnit.MILLISECONDS);
+		service.schedule(() -> {
+			if (notesTime[nid] == id) {
+				channels[0].noteOff(note);
+			}
+		}, millis, TimeUnit.MILLISECONDS);
 	}
 	
 	public void stop() {

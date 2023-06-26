@@ -17,7 +17,7 @@ public class PianoRoll extends JPanel {
 	
 	private final Set<Note> selectedNotes = new HashSet<>();
 	private final Rectangle selectRect = new Rectangle();
-	private double timeBeat;
+	private int timeTick;
 	
 	public PianoRoll(PianoComponent parent) {
 		this.parent = parent;
@@ -29,6 +29,31 @@ public class PianoRoll extends JPanel {
 		// 		state.addNote(new Note(parent.getOctaveOffset() * 12 + j, i, i + 1));
 		// 	}
 		// }
+		
+		state.addNotes(List.of(
+			new Note(Note.getNoteFromName("A3"),  0 * 24,  2 * 24),
+			new Note(Note.getNoteFromName("B3"),  2 * 24,  4 * 24),
+			new Note(Note.getNoteFromName("C4"),  4 * 24,  6 * 24),
+			new Note(Note.getNoteFromName("D4"),  6 * 24,  8 * 24),
+			new Note(Note.getNoteFromName("E4"),  8 * 24, 10 * 24),
+			new Note(Note.getNoteFromName("A4"), 10 * 24, 12 * 24),
+			new Note(Note.getNoteFromName("E4"), 12 * 24, 14 * 24),
+			new Note(Note.getNoteFromName("D4"), 16 * 24, 18 * 24),
+			new Note(Note.getNoteFromName("G4"), 18 * 24, 20 * 24),
+			new Note(Note.getNoteFromName("E4"), 20 * 24, 22 * 24),
+			new Note(Note.getNoteFromName("D4"), 24 * 24, 26 * 24),
+			new Note(Note.getNoteFromName("G4"), 26 * 24, 28 * 24),
+			new Note(Note.getNoteFromName("E4"), 28 * 24, 30 * 24),
+			new Note(Note.getNoteFromName("C4"), 30 * 24, 32 * 24),
+			new Note(Note.getNoteFromName("F4"), 32 * 24, 34 * 24),
+			new Note(Note.getNoteFromName("D4"), 34 * 24, 36 * 24),
+			new Note(Note.getNoteFromName("F4"), 36 * 24, 38 * 24),
+			new Note(Note.getNoteFromName("C5"), 38 * 24, 40 * 24),
+			new Note(Note.getNoteFromName("B4"), 40 * 24, 42 * 24),
+			new Note(Note.getNoteFromName("A4"), 42 * 24, 44 * 24),
+			new Note(Note.getNoteFromName("G4"), 44 * 24, 46 * 24),
+			new Note(Note.getNoteFromName("A4"), 46 * 24, 48 * 24),
+			new Note(Note.getNoteFromName("E4"), 48 * 24, 50 * 24)));
 		
 		setFocusable(true);
 		MouseAdapter adapter = new MouseAdapter() {
@@ -89,13 +114,13 @@ public class PianoRoll extends JPanel {
 						selectedNotes.clear();
 						
 						for (var note : state.getNotes()) {
-							int xx = (int) (note.start * stepWidth);
+							int xx = note.start * stepWidth / 24;
 							int yy = 14 * ((parent.getOctaveCount() + parent.getOctaveOffset()) * 12 - note.note - 1);
 							
 							int height = 14;
-							int width = (int) ((note.end - note.start) * stepWidth); // in steps
+							int width = (note.end - note.start) * stepWidth / 24; // in steps
 							
-							if (selectRect.intersects(xx, yy, width, height) ) {
+							if (selectRect.intersects(xx, yy, width, height)) {
 								selectedNotes.add(note);
 							}
 						}
@@ -109,15 +134,14 @@ public class PianoRoll extends JPanel {
 			private int lastPlayIdx = 0;
 			private int lastPlayIdxX = -1;
 			private void select(Point p, boolean create) {
-				int noteX = p.x / parent.getStepWidth();
+				int noteX = (p.x / parent.getStepWidth()) * 24;
 				int noteY = p.y / 14;
-				
 				int idx = (parent.getOctaveCount() + parent.getOctaveOffset()) * parent.getOctaveHeight() / 14 - noteY - 1;
 				
-				synchronized (state) {
+				synchronized (state) { 
 					Predicate<Note> filter = item -> item.note == idx && item.start < noteX + 1 && item.end > noteX;
 					if (create) {
-						Note a = new Note(idx, noteX, noteX + 1);
+						Note a = new Note(idx, noteX, noteX + 24);
 						
 						if (!parent.isPlaying()) {
 							if (lastPlayIdx != idx || lastPlayIdxX != noteX) {
@@ -239,31 +263,38 @@ public class PianoRoll extends JPanel {
 			g.drawLine(i, 0, i, height);
 		}
 		
+		int beatWidth = stepWidth * 4;
 		g.setColor(PianoColors.RollLine);
-		for (int i = 0; i < width; i += stepWidth * 4) {
+		for (int i = 0; i < width; i += beatWidth) {
 			g.drawLine(i, 0, i, height);
 		}
 		
-		int timeIndex = (int) (timeBeat * stepWidth * 4);
+		int barWidth = stepWidth * 16;
+		g.setColor(PianoColors.RollLineDark);
+		for (int i = 0; i < width; i += barWidth) {
+			g.drawLine(i, 0, i, height);
+		}
+		
+		int timeIndex = (timeTick * stepWidth / 24);
 		for (int i = 0; i < PianoColors.RollTime.length; i++) {
 			g.setColor(PianoColors.RollTime[i]);
 			g.drawLine(timeIndex - i, 0, timeIndex - i, height);
 		}
 		
 		g.setColor(PianoColors.RollDarker);
-		for (int i = 16 * stepWidth; i < width; i += 32 * stepWidth) {
-			g.fillRect(i, y, 16 * stepWidth, 14 * 12);
+		for (int i = 4 * barWidth; i < width; i += 8 * barWidth) {
+			g.fillRect(i, y, 4 * barWidth, 14 * 12);
 		}
 	}
 	
 	protected void paintNotes(Graphics2D g, int y, int stepWidth) {
 		synchronized (state) {
 			for (var note : state.getNotes()) {
-				int xx = (int) (note.start * stepWidth);
+				int xx = (int) (note.start / 24.0 * stepWidth);
 				int yy = y + 14 * ((parent.getOctaveCount() + parent.getOctaveOffset()) * 12 - note.note - 1);
 				
 				int height = 14;
-				int width = (int) ((note.end - note.start) * stepWidth); // in steps
+				int width = (int) (((note.end - note.start) / 24.0) * stepWidth); // in steps
 				
 				if (selectRect.intersects(xx, yy, width, height) || selectedNotes.contains(note)) {
 					g.setColor(PianoColors.RollNoteSelected);
@@ -288,12 +319,12 @@ public class PianoRoll extends JPanel {
 		}
 	}
 	
-	public void setTimeBeat(double beat) {
-		timeBeat = beat;
+	public void setTimeTick(int tick) {
+		timeTick = tick;
 	}
 	
-	public double getTimeBeat() {
-		return timeBeat;
+	public int getTimeTick() {
+		return timeTick;
 	}
 	
 	public List<Note> getNotes() {
