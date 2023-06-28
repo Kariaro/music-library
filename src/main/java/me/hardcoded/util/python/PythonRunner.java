@@ -1,4 +1,4 @@
-package me.hardcoded.python;
+package me.hardcoded.util.python;
 
 import me.hardcoded.data.persistent.ApplicationData;
 

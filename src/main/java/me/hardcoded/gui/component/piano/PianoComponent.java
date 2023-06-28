@@ -1,6 +1,8 @@
 package me.hardcoded.gui.component.piano;
 
-import me.hardcoded.python.FLStudioPython;
+import me.hardcoded.data.Note;
+import me.hardcoded.gui.component.border.SmallScrollbar;
+import me.hardcoded.gui.window.EventMap;
 import me.hardcoded.sound.PianoSound;
 
 import javax.swing.*;
@@ -9,9 +11,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 
 public class PianoComponent extends JPanel {
-	protected final PianoKeys section;
 	protected final PianoRollTimeline rollTimeline;
 	protected final PianoRoll roll;
+	protected final PianoKeys keys;
 	protected final PianoSound sound;
 	
 	protected double beatsPerMinute = 140;
@@ -20,11 +22,11 @@ public class PianoComponent extends JPanel {
 	protected final Timer playTimer;
 	protected long playTimerStart;
 	
-	public PianoComponent() {
+	public PianoComponent(EventMap eventMap) {
 		sound = new PianoSound();
 		
-		section = new PianoKeys(this, getOctaveCount());
-		roll = new PianoRoll(this);
+		keys = new PianoKeys(this);
+		roll = new PianoRoll(this, eventMap);
 		rollTimeline = new PianoRollTimeline(this, roll);
 		
 		// Add elements
@@ -38,7 +40,7 @@ public class PianoComponent extends JPanel {
 		JPanel rollAndSection = new JPanel();
 		rollAndSection.setFocusable(true);
 		rollAndSection.setLayout(new BorderLayout());
-		rollAndSection.add(section, BorderLayout.LINE_START);
+		rollAndSection.add(keys, BorderLayout.LINE_START);
 		rollAndSection.add(roll, BorderLayout.CENTER);
 		
 		JScrollPane pane = new JScrollPane();
@@ -48,6 +50,7 @@ public class PianoComponent extends JPanel {
 		pane.setBorder(null);
 		pane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 		pane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+		pane.setVerticalScrollBar(new SmallScrollbar());
 		pane.getVerticalScrollBar().setUnitIncrement(16);
 		add(pane, BorderLayout.CENTER);
 		
@@ -55,8 +58,7 @@ public class PianoComponent extends JPanel {
 		
 		setFocusable(true);
 		
-		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0), PianoAction.Play);
-		getActionMap().put(PianoAction.Play, new AbstractAction() {
+		eventMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0), PianoAction.Play, new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (playTimer.isRunning()) {
@@ -66,14 +68,6 @@ public class PianoComponent extends JPanel {
 				} else {
 					play();
 				}
-			}
-		});
-		
-		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), PianoAction.Search);
-		getActionMap().put(PianoAction.Search, new AbstractAction() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				FLStudioPython.performSearch(roll.getNotes());
 			}
 		});
 	}
@@ -90,8 +84,18 @@ public class PianoComponent extends JPanel {
 		return 2;
 	}
 	
-	boolean isNoteHovered(int index) {
-		return section.isNoteSelected(index);
+	/**
+	 * Returns the lowest note visible in this piano
+	 */
+	public int getLowestNote() {
+		return getOctaveOffset() * 12;
+	}
+	
+	/**
+	 * Returns the highest note visible in this piano
+	 */
+	public int getHighestNote() {
+		return (getOctaveOffset() + getOctaveCount()) * 12 - 1;
 	}
 	
 	public void setTimeTick(int tick) {
@@ -137,14 +141,6 @@ public class PianoComponent extends JPanel {
 	
 	private void onTick() {
 		long currentTime = System.currentTimeMillis();
-		
-		// 4 beats per measure
-		// 1 measure = 4 beats
-		// bpm / 4 = measures
-		
-		// 240 bpm = 240 beats / min = 60 measures / min
-		// 1 messure
-		
 		double ticksPerSecond = ((beatsPerMinute) / 60.0) * 4.0 * 24.0;
 		int tickIndex = (int) (((currentTime - playTimerStart) / 1000.0) * ticksPerSecond);
 		
@@ -164,5 +160,9 @@ public class PianoComponent extends JPanel {
 				sound.playNote(note.note + 12, 80, noteMillis);
 			}
 		}
+	}
+	
+	public java.util.List<Note> getNotes() {
+		return roll.getNotes();
 	}
 }

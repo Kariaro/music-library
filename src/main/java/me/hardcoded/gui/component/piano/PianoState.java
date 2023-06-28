@@ -9,24 +9,35 @@ public class PianoState {
 	private final List<Note> notes = new ArrayList<>();
 	
 	public synchronized void addNote(Note note) {
-		operations.addFirst(new Operation(Type.Add, List.of(note)));
+		operations.addFirst(new Operation(Type.Add, List.of(note), 0, 0));
 		normalizeOperations();
 		
 		notes.add(note);
 	}
 	
 	public void addNotes(List<Note> list) {
-		operations.addFirst(new Operation(Type.Add, new ArrayList<>(list)));
+		operations.addFirst(new Operation(Type.Add, new ArrayList<>(list), 0, 0));
 		normalizeOperations();
 		
 		notes.addAll(list);
 	}
 	
-	public synchronized void removeNotes(Collection<Note> collections) {
-		operations.addFirst(new Operation(Type.Remove, new ArrayList<>(collections)));
+	public synchronized void removeNotes(Collection<Note> collection) {
+		operations.addFirst(new Operation(Type.Remove, new ArrayList<>(collection), 0, 0));
 		normalizeOperations();
 		
-		notes.removeAll(collections);
+		notes.removeAll(collection);
+	}
+	
+	public synchronized void moveNotes(Collection<Note> collection, int tx, int ty) {
+		operations.addFirst(new Operation(Type.Move, new ArrayList<>(collection), tx, ty));
+		normalizeOperations();
+		
+		for (Note note : collection) {
+			note.start += tx;
+			note.end += tx;
+			note.note += ty;
+		}
 	}
 	
 	public synchronized void undo() {
@@ -38,6 +49,13 @@ public class PianoState {
 		switch (op.type()) {
 			case Remove -> notes.addAll(op.notes);
 			case Add -> notes.removeAll(op.notes);
+			case Move -> {
+				for (Note note : op.notes) {
+					note.start -= op.tx;
+					note.end -= op.tx;
+					note.note -= op.ty;
+				}
+			}
 		}
 	}
 	
@@ -59,8 +77,9 @@ public class PianoState {
 	
 	private enum Type {
 		Remove,
-		Add
+		Add,
+		Move
 	}
 	
-	private static record Operation(Type type, Collection<Note> notes) {}
+	private static record Operation(Type type, Collection<Note> notes, int tx, int ty) {}
 }

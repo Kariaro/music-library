@@ -7,27 +7,28 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Piano layout component
  */
 public class PianoKeys extends JPanel {
 	private final PianoComponent parent;
-	private final boolean[] notes;
+	private final Set<Integer> notes;
 	
-	public PianoKeys(PianoComponent parent, int octaves) {
+	public PianoKeys(PianoComponent parent) {
 		this.parent = parent;
-		this.notes = new boolean[12 * octaves];
+		this.notes = new HashSet<>();
 		
 		setFocusable(true);
 		MouseAdapter adapter = new MouseAdapter() {
 			@Override
 			public void mouseMoved(MouseEvent e) {
-				Arrays.fill(notes, false);
-				
 				int idx = getNoteIndex(e.getPoint(), 0);
-				if (idx > -1) {
-					notes[idx % notes.length] = true;
+				synchronized (notes) {
+					notes.clear();
+					notes.add(idx);
 				}
 				
 				repaint();
@@ -45,15 +46,19 @@ public class PianoKeys extends JPanel {
 			
 			@Override
 			public void mouseDragged(MouseEvent e) {
-				Arrays.fill(notes, false);
+				if (e.getX() < 0) {
+					return;
+				}
 				
 				int idx = getNoteIndex(e.getPoint(), 0);
-				if (idx > -1) {
-					notes[idx % notes.length] = true;
+				synchronized (notes) {
+					notes.clear();
+					notes.add(idx);
 				}
 				
 				if (prevIdx != idx) {
 					parent.sound.playNote(idx + (parent.getOctaveOffset() + 1) * 12, 80, 500);
+					prevIdx = idx;
 				}
 				
 				repaint();
@@ -61,7 +66,9 @@ public class PianoKeys extends JPanel {
 			
 			@Override
 			public void mouseExited(MouseEvent e) {
-				Arrays.fill(notes, false);
+				synchronized (notes) {
+					notes.clear();
+				}
 				repaint();
 				parent.roll.repaint();
 			}
@@ -104,7 +111,7 @@ public class PianoKeys extends JPanel {
 				
 				int height = Heights[i];
 				int noteIdx = index + 11 - i * 2 + (i > 3 ? 1 : 0);
-				if (paintSelected == isNoteSelected(noteIdx)) {
+				if (paintSelected == isNoteHovered(noteIdx)) {
 					g.fillRect(0, yy, PianoColors.FlatNoteWidth, height);
 				}
 				
@@ -119,7 +126,7 @@ public class PianoKeys extends JPanel {
 			for (int i = 0, yy = y + 14; i < 5; i++) {
 				int height = 14;
 				int noteIdx = index + 10 - i * 2 - (i > 2 ? 1 : 0);
-				if (paintSelected == isNoteSelected(noteIdx)) {
+				if (paintSelected == isNoteHovered(noteIdx)) {
 					g.fillRect(0, yy, PianoColors.SharpNoteWidth, height);
 				}
 				
@@ -139,20 +146,6 @@ public class PianoKeys extends JPanel {
 		
 		Rectangle rect = new Rectangle(0, y + octaveHeight - 21, PianoColors.FlatNoteWidth, 21);
 		DrawUtility.drawTextAligned(g, "C" + (octave + parent.getOctaveOffset()), rect, DrawUtility.ALIGN_CENTER_RIGHT);
-		
-		/*
-		g.translate(100, 0);
-		int s = 100;
-		for (int i = 0; i < 9; i++) {
-			int xx = i % 3;
-			int yy = i / 3;
-			
-			Rectangle box = new Rectangle(xx * s, yy * s, s, s);
-			g.drawRect(box.x, box.y, box.width, box.height);
-			DrawUtility.drawTextAligned(g, "" + i, box, i);
-		}
-		g.translate(-100, 0);
-		*/
 	}
 	
 	public int getNoteIndex(Point mouse, int scroll) {
@@ -196,11 +189,7 @@ public class PianoKeys extends JPanel {
 		return new Dimension(70, parent.getOctaveCount() * parent.getOctaveHeight());
 	}
 	
-	public boolean isNoteSelected(int index) {
-		if (index < 0 || index >= notes.length) {
-			return false;
-		}
-		
-		return notes[index];
+	public boolean isNoteHovered(int index) {
+		return notes.contains(index);
 	}
 }

@@ -1,11 +1,10 @@
 package me.hardcoded.main;
 
 import me.hardcoded.gui.window.MusicLibraryWindow;
-import me.hardcoded.python.FLStudioPython;
-import me.hardcoded.python.PythonRunner;
+import me.hardcoded.util.python.PythonRunner;
 
+import javax.swing.*;
 import java.awt.*;
-import java.io.File;
 
 public class Main {
 	public static void main(String[] args) {
@@ -13,9 +12,12 @@ public class Main {
 		// TODO: Add loading popup
 		PythonRunner.init();
 		
-		/*for (var list : FLStudioPython.readProjectPatterns(new File("C:\\Users\\Admin\\AppData\\Roaming\\music-library-data\\BeatStep_2022_07_06.flp"))) {
-			System.out.println(list);
-		}*/
+		try {
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		// JFrame.setDefaultLookAndFeelDecorated(true);
 		
 		// Setup window class
 		Dimension size = new Dimension(640, 380);

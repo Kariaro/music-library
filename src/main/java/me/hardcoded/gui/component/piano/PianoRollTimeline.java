@@ -1,12 +1,9 @@
 package me.hardcoded.gui.component.piano;
 
 import me.hardcoded.gui.util.DrawUtility;
-import me.hardcoded.sound.PianoSound;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
@@ -32,7 +29,7 @@ public class PianoRollTimeline extends JPanel {
 			}
 			
 			public void moveTime(Point p) {
-				int rollIndex = p.x - parent.section.getWidth();
+				int rollIndex = p.x - parent.keys.getWidth();
 				
 				int barWidth = parent.getStepWidth() * 16;
 				int tickOffset = (int) (((rollIndex + barWidth / 8.0) / (double) barWidth) * 16 * 24);
@@ -70,7 +67,7 @@ public class PianoRollTimeline extends JPanel {
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		
 		g.setColor(Color.darkGray);
-		g.fillRect(0, 0, parent.section.getWidth(), getHeight());
+		g.fillRect(0, 0, parent.keys.getWidth(), getHeight());
 		
 		// Draw digits
 		int width = getWidth();
@@ -80,14 +77,14 @@ public class PianoRollTimeline extends JPanel {
 		g.setColor(Color.lightGray);
 		int beatIndex = 1;
 		
-		Rectangle rect = new Rectangle(parent.section.getWidth(), 0, barWidth, getHeight());
+		Rectangle rect = new Rectangle(parent.keys.getWidth(), 0, barWidth, getHeight());
 		for (int i = 0; i < width; i += barWidth) {
 			DrawUtility.drawTextAligned(g, Integer.toString(beatIndex), rect, DrawUtility.ALIGN_CENTER_LEFT);
 			rect.x += barWidth;
 			beatIndex += 1;
 		}
 		
-		int bx = (int) (stepWidth * timeTickStart / 24.0) + parent.section.getWidth();
+		int bx = (int) (stepWidth * timeTickStart / 24.0) + parent.keys.getWidth();
 		int[][] polygon = {
 			{ bx - 7, bx - 7, bx, bx + 7, bx + 7},
 			{ 4, 10, 15, 10, 4 }

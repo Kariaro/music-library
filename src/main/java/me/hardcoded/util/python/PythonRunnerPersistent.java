@@ -1,4 +1,4 @@
-package me.hardcoded.python;
+package me.hardcoded.util.python;
 
 import java.io.*;
 import java.nio.file.Path;
@@ -47,10 +47,13 @@ public class PythonRunnerPersistent {
 			
 			// TODO: Max timeout?
 			while (!reader.ready()) {
+				Thread.sleep(10);
 				Thread.yield();
 			}
 			
 			return reader.readLine();
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -61,7 +64,10 @@ public class PythonRunnerPersistent {
 	public void stop() {
 		Process localProcess = process;
 		if (localProcess != null) {
+			localProcess.descendants().forEach(ProcessHandle::destroy);
+			localProcess.destroy();
 			localProcess.destroyForcibly();
+			process = null;
 		}
 	}
 }

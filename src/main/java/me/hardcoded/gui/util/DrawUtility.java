@@ -24,18 +24,6 @@ public class DrawUtility {
 		var fm = g.getFontMetrics();
 		var bounds = fm.getStringBounds(text, g);
 		
-		/*
-		Color c = g.getColor();
-		g.setColor(Color.green);
-		g.drawRect(
-			(int) rect.getX(),
-			(int) rect.getY(),
-			(int) rect.getWidth(),
-			(int) rect.getHeight()
-		);
-		g.setColor(c);
-		*/
-		
 		int xOffset;
 		int alignHorizontal = align % 3;
 		switch (alignHorizontal) { // Horizontal Alignment
@@ -66,17 +54,6 @@ public class DrawUtility {
 			}
 			default -> throw new UnsupportedOperationException();
 		}
-		
-		/*
-		g.setColor(Color.blue);
-		g.drawRect(
-			rect.x + xOffset + (int) bounds.getX(),
-			rect.y + yOffset + (int) bounds.getY(),
-			(int) bounds.getWidth(),
-			(int) bounds.getHeight()
-		);
-		g.setColor(c);
-		*/
 		
 		g.drawString(text, rect.x + xOffset, rect.y + yOffset);
 	}
