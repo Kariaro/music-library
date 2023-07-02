@@ -2,7 +2,6 @@ package me.hardcoded.gui.component.piano;
 
 interface PianoAction {
 	String Play = "play";
-	String Search = "search";
 	String RollDeleteSelection = "roll-delete-selection";
 	String RollUndo = "roll-undo";
 	String RollSelectAll = "roll-select-all";

@@ -1,4 +1,4 @@
-package me.hardcoded.gui.window;
+package me.hardcoded.gui.component.song;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -19,6 +19,16 @@ public class EventMap {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				action.actionPerformed(new ActionEvent(e.getSource(), e.getID(), name, e.getWhen(), e.getModifiers()));
+			}
+		});
+	}
+	
+	public void put(KeyStroke keyStroke, String name, Runnable runnable) {
+		inputMap.put(keyStroke, name);
+		actionMap.put(name, new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				runnable.run();
 			}
 		});
 	}

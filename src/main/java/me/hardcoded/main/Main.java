@@ -1,6 +1,6 @@
 package me.hardcoded.main;
 
-import me.hardcoded.gui.window.MusicLibraryWindow;
+import me.hardcoded.gui.component.song.MusicLibraryWindow;
 import me.hardcoded.util.python.PythonRunner;
 
 import javax.swing.*;

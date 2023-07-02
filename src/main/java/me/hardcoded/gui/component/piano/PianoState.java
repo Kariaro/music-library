@@ -2,7 +2,9 @@ package me.hardcoded.gui.component.piano;
 
 import me.hardcoded.data.Note;
 
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 
 public class PianoState {
 	private final LinkedList<Operation> operations = new LinkedList<>();
@@ -37,6 +39,17 @@ public class PianoState {
 			note.start += tx;
 			note.end += tx;
 			note.note += ty;
+		}
+	}
+	
+	/**
+	 * Put all notes that matched the rectangle in the specified collection
+	 */
+	public synchronized void getNotes(Collection<Note> collection, Rectangle rectangle) {
+		for (Note note : notes) {
+			if (rectangle.intersects(note.start, note.note, note.end - note.start, 1)) {
+				collection.add(note);
+			}
 		}
 	}
 	

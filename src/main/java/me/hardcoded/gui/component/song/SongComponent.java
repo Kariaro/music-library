@@ -1,6 +1,5 @@
 package me.hardcoded.gui.component.song;
 
-import me.hardcoded.gui.window.MusicLookup;
 import me.hardcoded.util.desktop.AppDesktop;
 import me.hardcoded.util.desktop.AppFiles;
 
@@ -10,7 +9,6 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
-import java.security.KeyStore;
 import java.util.Locale;
 
 public class SongComponent extends JPanel {
@@ -29,12 +27,12 @@ public class SongComponent extends JPanel {
 		score.setMinimumSize(new Dimension(100, height));
 		score.setPreferredSize(new Dimension(100, height));
 		score.setMaximumSize(new Dimension(Integer.MAX_VALUE, height));
-		score.setFont(MusicLookup.Fonts.SerifFont);
+		score.setFont(MusicLookup.Fonts.Serif);
 		score.setText("not evaluated");
 		
 		label = new JLabel();
 		label.setForeground(MusicLookup.Colors.DefaultText);
-		label.setFont(MusicLookup.Fonts.SerifFont);
+		label.setFont(MusicLookup.Fonts.SerifUnderline);
 		label.setSize(new Dimension(100, height));
 		label.setMinimumSize(new Dimension(100, height));
 		label.setPreferredSize(new Dimension(100, height));
@@ -73,7 +71,7 @@ public class SongComponent extends JPanel {
 	
 	public void setScore(double score) {
 		if (Double.isFinite(score)) {
-			this.score.setText(String.format(Locale.US, "%.4f", score));
+			this.score.setText(String.format(Locale.US, "Similarity %.1f", score));
 		} else {
 			this.score.setText("not applicable");
 		}

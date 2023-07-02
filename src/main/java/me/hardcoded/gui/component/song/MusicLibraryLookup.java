@@ -1,7 +1,6 @@
-package me.hardcoded.gui.window;
+package me.hardcoded.gui.component.song;
 
 import me.hardcoded.algorithm.midi.MelodyScore;
-import me.hardcoded.gui.component.song.SongComponent;
 import me.hardcoded.util.python.FLStudioLookup;
 
 import javax.swing.*;
@@ -15,8 +14,7 @@ public class MusicLibraryLookup {
 	public MusicLibraryLookup() {
 		songList = new JPanel();
 		songList.setLayout(new BoxLayout(songList, BoxLayout.PAGE_AXIS));
-		songList.setBorder(null);
-		songList.setBackground(new Color(0x1e2931)); // new Color(0x3f484d));
+		songList.setBackground(MusicLookup.Colors.SongListBackground);
 		songList.setMinimumSize(new Dimension(140, 0));
 		
 		addSong(0, "A");
@@ -33,7 +31,7 @@ public class MusicLibraryLookup {
 		SongComponent songComponent = new SongComponent();
 		songComponent.setBackground((songList.getComponentCount() & 1) == 0
 			? MusicLookup.Colors.SongBackground
-			: MusicLookup.Colors.SongBackground.brighter());
+			: MusicLookup.Colors.SongBackgroundBright);
 		songComponent.setScore(score);
 		songComponent.setPath(path);
 		
@@ -47,6 +45,7 @@ public class MusicLibraryLookup {
 			addSong(entry.getKey().getCalculatedScore(), entry.getValue().file());
 		}
 		
+		songList.revalidate();
 		songList.repaint();
 	}
 }

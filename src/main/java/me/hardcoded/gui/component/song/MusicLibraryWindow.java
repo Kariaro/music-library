@@ -1,4 +1,4 @@
-package me.hardcoded.gui.window;
+package me.hardcoded.gui.component.song;
 
 import me.hardcoded.data.Note;
 import me.hardcoded.data.persistent.ApplicationData;
@@ -9,8 +9,8 @@ import me.hardcoded.gui.component.piano.PianoComponent;
 import me.hardcoded.util.python.FLStudioLookup;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.util.List;
 import java.util.Locale;
@@ -60,13 +60,7 @@ public class MusicLibraryWindow extends JFrame {
 		}
 		rootPanel.add(splitPane, BorderLayout.CENTER);
 		
-		
-		eventMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "library-search", new AbstractAction() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				performSearch();
-			}
-		});
+		eventMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "library-search", this::performSearch);
 	}
 	
 	private void performSearch() {
@@ -77,7 +71,6 @@ public class MusicLibraryWindow extends JFrame {
 		isSearching = true;
 		
 		List<Note> notes = pianoComponent.getNotes();
-		
 		Thread thread = new Thread(() -> {
 			try {
 				var projects = FLStudioLookup.getProjects(List.of(ApplicationData.getInstance().get("test")), percentage -> {
@@ -92,7 +85,6 @@ public class MusicLibraryWindow extends JFrame {
 				
 				SwingUtilities.invokeLater(() -> {
 					scoreViewer.display(scores);
-					rootPanel.repaint();
 				});
 			} finally {
 				isSearching = false;
@@ -106,6 +98,7 @@ public class MusicLibraryWindow extends JFrame {
 	private void createToolBar() {
 		JPanel toolPanel = new JPanel();
 		toolPanel.setLayout(new BoxLayout(toolPanel, BoxLayout.LINE_AXIS));
+		toolPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		toolPanel.setBackground(MusicLookup.Colors.SongBackground);
 		
 		searchPercentageLabel = new JLabel("Not started");

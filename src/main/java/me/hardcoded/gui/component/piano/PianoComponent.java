@@ -2,29 +2,32 @@ package me.hardcoded.gui.component.piano;
 
 import me.hardcoded.data.Note;
 import me.hardcoded.gui.component.border.SmallScrollbar;
-import me.hardcoded.gui.window.EventMap;
+import me.hardcoded.gui.component.song.EventMap;
 import me.hardcoded.sound.PianoSound;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.util.HashSet;
+import java.util.Set;
 
 public class PianoComponent extends JPanel {
 	protected final PianoRollTimeline rollTimeline;
 	protected final PianoRoll roll;
 	protected final PianoKeys keys;
 	protected final PianoSound sound;
+	protected final Set<Integer> playNotes;
 	
 	protected double beatsPerMinute = 140;
 	protected int stepWidth = 18;
+	protected int stepHeight = 14;
 	
 	protected final Timer playTimer;
 	protected long playTimerStart;
 	
 	public PianoComponent(EventMap eventMap) {
+		playNotes = new HashSet<>();
 		sound = new PianoSound();
-		
 		keys = new PianoKeys(this);
 		roll = new PianoRoll(this, eventMap);
 		rollTimeline = new PianoRollTimeline(this, roll);
@@ -32,20 +35,18 @@ public class PianoComponent extends JPanel {
 		// Add elements
 		setLayout(new BorderLayout());
 		add(rollTimeline, BorderLayout.NORTH);
-		// add(section, BorderLayout.LINE_START);
-		// add(roll, BorderLayout.CENTER);
 		setTimeTick(24);
 		
 		// Scroll
-		JPanel rollAndSection = new JPanel();
-		rollAndSection.setFocusable(true);
-		rollAndSection.setLayout(new BorderLayout());
-		rollAndSection.add(keys, BorderLayout.LINE_START);
-		rollAndSection.add(roll, BorderLayout.CENTER);
+		JPanel rollAndKeys = new JPanel();
+		rollAndKeys.setFocusable(true);
+		rollAndKeys.setLayout(new BorderLayout());
+		rollAndKeys.add(keys, BorderLayout.LINE_START);
+		rollAndKeys.add(roll, BorderLayout.CENTER);
 		
 		JScrollPane pane = new JScrollPane();
 		pane.setFocusable(true);
-		pane.setViewportView(rollAndSection);
+		pane.setViewportView(rollAndKeys);
 		pane.setViewportBorder(null);
 		pane.setBorder(null);
 		pane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
@@ -58,30 +59,30 @@ public class PianoComponent extends JPanel {
 		
 		setFocusable(true);
 		
-		eventMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0), PianoAction.Play, new AbstractAction() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (playTimer.isRunning()) {
-					playTimer.stop();
-					roll.setTimeTick(-1);
-					repaint();
-				} else {
-					play();
+		eventMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0), PianoAction.Play, () -> {
+			if (playTimer.isRunning()) {
+				playTimer.stop();
+				roll.setTimeTick(-1);
+				synchronized (playNotes) {
+					playNotes.clear();
 				}
+				repaint();
+			} else {
+				play();
 			}
 		});
 	}
 	
 	public int getOctaveHeight() {
-		return 98 + 70;
+		return 12 * getStepHeight();
 	}
 	
 	public int getOctaveCount() {
-		return 7;
+		return 8;
 	}
 	
 	public int getOctaveOffset() {
-		return 2;
+		return 1;
 	}
 	
 	/**
@@ -115,8 +116,28 @@ public class PianoComponent extends JPanel {
 		rollTimeline.repaint();
 	}
 	
+	public void setStepHeight(int height) {
+		if (height < 4) {
+			height = 4;
+		}
+		
+		if (height > 40) {
+			height = 40;
+		}
+		
+		this.stepHeight = height;
+		roll.repaint();
+		keys.repaint();
+		rollTimeline.repaint();
+		roll.getParent().revalidate();
+	}
+	
 	public int getStepWidth() {
 		return stepWidth;
+	}
+	
+	public int getStepHeight() {
+		return stepHeight;
 	}
 	
 	/**
@@ -145,21 +166,31 @@ public class PianoComponent extends JPanel {
 		int tickIndex = (int) (((currentTime - playTimerStart) / 1000.0) * ticksPerSecond);
 		
 		int prevIndex = roll.getTimeTick();
-		roll.setTimeTick(tickIndex);
-		roll.repaint();
 		
 		// 16 beats
 		if (tickIndex > 24 * 16 * 16) {
 			playTimer.stop();
+			playNotes.clear();
 		}
 		
-		for (var note : roll.getNotes()) {
-			int noteMillis = (int) (((note.end - note.start) / ticksPerSecond) * 1000);
-			if (note.start < tickIndex && note.start >= prevIndex) {
-				// Play
-				sound.playNote(note.note + 12, 80, noteMillis);
+		synchronized (playNotes) {
+			playNotes.clear();
+			for (var note : roll.getNotes()) {
+				int noteMillis = (int) (((note.end - note.start) / ticksPerSecond) * 1000);
+				if (note.start < tickIndex && note.start >= prevIndex) {
+					// Play
+					sound.playNote(note.note + 12, 80, noteMillis);
+				}
+				
+				if (note.start < tickIndex && note.end > tickIndex) {
+					playNotes.add(note.note);
+				}
 			}
 		}
+		
+		roll.setTimeTick(tickIndex);
+		roll.repaint();
+		keys.repaint();
 	}
 	
 	public java.util.List<Note> getNotes() {
